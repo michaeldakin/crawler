@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+// Pull all html from a website urling a GET request bytes are converted to a string
+//
+// Returns:
+//  string - html body bytes
+//  error - nil or error
 func getHTML(rawURL string) (string, error) {
 	res, err := http.Get(rawURL)
 	if err != nil {
