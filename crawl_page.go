@@ -6,9 +6,11 @@ import (
 )
 
 func (cfg *config) crawlPage(rawCurrentURL string) {
+    // Send unary to unblock channel
     cfg.concurrencyControl <- struct{}{}
 
 	defer func() {
+        // Mark done and block channel
         <-cfg.concurrencyControl
         cfg.wg.Done()
 	}()
@@ -23,7 +25,7 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		return
 	}
 
-	// skip other websites
+	// Exit if URL does not match expected baseURL
 	if currentURL.Hostname() != cfg.baseURL.Hostname() {
 		return
 	}
@@ -33,6 +35,7 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		fmt.Printf("Error - normalizedURL: %v", err)
 	}
 
+    // Mutex to increment map
 	isFirst := cfg.addPageVisit(normalizedURL)
 	if !isFirst {
 		return
@@ -40,18 +43,22 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 
 	fmt.Printf("crawling %s\n", rawCurrentURL)
 
+    // Get html content from the URL as a string
 	htmlBody, err := getHTML(rawCurrentURL)
 	if err != nil {
 		fmt.Printf("Error - getHTML: %v", err)
 		return
 	}
 
+    // Traverse html body and find all <a> anchor tags with href tags
+    // Returns all URLs from <a href="">
 	nextURLs, err := getURLsFromHTML(htmlBody, cfg.baseURL)
 	if err != nil {
 		fmt.Printf("Error - getURLsFromHTML: %v", err)
 	}
 
 	for _, nextURL := range nextURLs {
+        // Recursively add to waitgroup and crawl URL
 		cfg.wg.Add(1)
 		go cfg.crawlPage(nextURL)
 	}
