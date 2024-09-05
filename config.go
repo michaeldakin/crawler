@@ -15,7 +15,7 @@ type config struct {
 	wg                 *sync.WaitGroup
 }
 
-func configure(rawBaseURL string, maxPages, maxConcurrency int) (*config, error) {
+func configure(rawBaseURL string, maxConcurrency, maxPages int) (*config, error) {
 	baseURL, err := url.Parse(rawBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't parse baseURL: %v", err)
